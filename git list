@@ -1,0 +1,332 @@
+[33mcommit 807f4d7933ab7e398ef1845b6ffc5d8bdd573c8e[m[33m ([m[1;36mHEAD -> [m[1;32mmaster[m[33m)[m
+Author: Paskevich_Denis <denispaskevich@gmail.com>
+Date:   Fri Oct 27 22:24:33 2023 +0300
+
+    Python
+
+[1mdiff --git a/db.db b/db.db[m
+[1mnew file mode 100644[m
+[1mindex 0000000..6b8eee9[m
+Binary files /dev/null and b/db.db differ
+[1mdiff --git a/img/add.png b/img/add.png[m
+[1mnew file mode 100644[m
+[1mindex 0000000..694a361[m
+Binary files /dev/null and b/img/add.png differ
+[1mdiff --git a/img/delete.png b/img/delete.png[m
+[1mnew file mode 100644[m
+[1mindex 0000000..bfb3314[m
+Binary files /dev/null and b/img/delete.png differ
+[1mdiff --git a/img/refresh.png b/img/refresh.png[m
+[1mnew file mode 100644[m
+[1mindex 0000000..bb8f202[m
+Binary files /dev/null and b/img/refresh.png differ
+[1mdiff --git a/img/search.png b/img/search.png[m
+[1mnew file mode 100644[m
+[1mindex 0000000..0fe8a58[m
+Binary files /dev/null and b/img/search.png differ
+[1mdiff --git a/img/update.png b/img/update.png[m
+[1mnew file mode 100644[m
+[1mindex 0000000..1a79e7c[m
+Binary files /dev/null and b/img/update.png differ
+[1mdiff --git a/main.py b/main.py[m
+[1mnew file mode 100644[m
+[1mindex 0000000..5bb6db8[m
+[1m--- /dev/null[m
+[1m+++ b/main.py[m
+[36m@@ -0,0 +1,295 @@[m
+[32m+[m[32mimport tkinter as tk[m
+[32m+[m[32mfrom tkinter import ttk[m
+[32m+[m[32mimport sqlite3[m
+[32m+[m
+[32m+[m
+[32m+[m[32m# класс главного окна[m
+[32m+[m[32mclass Main(tk.Frame):[m
+[32m+[m[32m    def __init__(self, root):[m
+[32m+[m[32m        super().__init__(root)[m
+[32m+[m[32m        self.init_main()[m
+[32m+[m[32m        self.db = db[m
+[32m+[m[32m        self.view_records()[m
+[32m+[m
+[32m+[m[32m    # хранение и инициализация объектов GUI[m
+[32m+[m[32m    def init_main(self):[m
+[32m+[m[32m        # создаем панель инструментов (тулбар)[m
+[32m+[m[32m        # bg - фон[m
+[32m+[m[32m        # bd - границы[m
+[32m+[m[32m        toolbar = tk.Frame(bg='#d7d8e0', bd=2)[m
+[32m+[m[32m        # упаковка[m
+[32m+[m[32m        # side закрепляет вверху окна[m
+[32m+[m[32m        # fill растягивает по X (горизонтали)[m
+[32m+[m[32m        toolbar.pack(side=tk.TOP, fill=tk.X)[m
+[32m+[m
+[32m+[m[32m        self.add_img = tk.PhotoImage(file='./img/add.png')[m
+[32m+[m[32m        # создание кнопки добавления[m
+[32m+[m[32m        # command - функция по нажатию[m
+[32m+[m[32m        # bg - фон[m
+[32m+[m[32m        # bd - граница[m
+[32m+[m[32m        # compound - ориентация текста (tk.CENTER , tk.LEFT , tk.RIGHT , tk.TOP или tk.BOTTOM.)[m
+[32m+[m[32m        # image - иконка кнопки[m
+[32m+[m[32m        btn_open_dialog = tk.Button(toolbar, bg='#d7d8e0', bd=0,[m
+[32m+[m[32m                                    image=self.add_img, command=self.open_dialog)[m
+[32m+[m[32m        # упаковка и выравнивание по левому краю[m
+[32m+[m[32m        btn_open_dialog.pack(side=tk.LEFT)[m
+[32m+[m
+[32m+[m[32m        # создание кнопки изменения данных[m
+[32m+[m[32m        self.update_img = tk.PhotoImage(file='./img/update.png')[m
+[32m+[m[32m        btn_edit_dialog = tk.Button(toolbar, bg='#d7d8e0', bd=0,[m[41m [m
+[32m+[m[32m                                    image=self.update_img, command=self.open_update_dialog)[m
+[32m+[m[32m        btn_edit_dialog.pack(side=tk.LEFT)[m
+[32m+[m
+[32m+[m[32m        # создание кнопки удаления записи[m
+[32m+[m[32m        self.delete_img = tk.PhotoImage(file='./img/delete.png')[m
+[32m+[m[32m        btn_delete = tk.Button(toolbar, bg='#d7d8e0', bd=0,[m[41m [m
+[32m+[m[32m                               image=self.delete_img, command=self.delete_records)[m
+[32m+[m[32m        btn_delete.pack(side=tk.LEFT)[m
+[32m+[m
+[32m+[m[32m        # кнопка поиска[m
+[32m+[m[32m        self.search_img = tk.PhotoImage(file='./img/search.png')[m
+[32m+[m[32m        btn_search = tk.Button(toolbar, bg='#d7d8e0', bd=0,[m
+[32m+[m[32m                               image=self.search_img, command=self.open_search_dialog)[m
+[32m+[m[32m        btn_search.pack(side=tk.LEFT)[m
+[32m+[m
+[32m+[m[32m        # кнопка обновления[m
+[32m+[m[32m        self.refresh_img = tk.PhotoImage(file='./img/refresh.png')[m
+[32m+[m[32m        btn_refresh = tk.Button(toolbar, bg='#d7d8e0', bd=0,[m[41m [m
+[32m+[m[32m                                image=self.refresh_img, command=self.view_records)[m
+[32m+[m[32m        btn_refresh.pack(side=tk.LEFT)[m
+[32m+[m
+[32m+[m[32m        # Добавляем Treeview[m
+[32m+[m[32m        # columns - столбцы[m
+[32m+[m[32m        # height - высота таблицы[m
+[32m+[m[32m        # show='headings' скрываем нулевую (пустую) колонку таблицы[m
+[32m+[m[32m        self.tree = ttk.Treeview(self, columns=('ID', 'name', 'tel', 'email'),[m
+[32m+[m[32m                                 height=45, show='headings')[m
+[32m+[m[32m        # добавляем параметры колонкам[m
+[32m+[m[32m        # width - ширина[m
+[32m+[m[32m        # anchor - выравнивание текста в ячейке[m
+[32m+[m[32m        self.tree.column("ID", width=30, anchor=tk.CENTER)[m
+[32m+[m[32m        self.tree.column("name", width=300, anchor=tk.CENTER)[m
+[32m+[m[32m        self.tree.column("tel", width=150, anchor=tk.CENTER)[m
+[32m+[m[32m        self.tree.column("email", width=150, anchor=tk.CENTER)[m
+[32m+[m
+[32m+[m[32m        # подписи колонок[m
+[32m+[m[32m        self.tree.heading("ID", text='ID')[m
+[32m+[m[32m        self.tree.heading("name", text='ФИО')[m
+[32m+[m[32m        self.tree.heading("tel", text='Телефон')[m
+[32m+[m[32m        self.tree.heading("email", text='E-mail')[m
+[32m+[m
+[32m+[m[32m        # упаковка[m
+[32m+[m[32m        self.tree.pack(side=tk.LEFT)[m
+[32m+[m
+[32m+[m[32m        scroll = tk.Scrollbar(self, command=self.tree.yview)[m
+[32m+[m[32m        scroll.pack(side=tk.LEFT, fill=tk.Y)[m
+[32m+[m[32m        self.tree.configure(yscrollcommand=scroll.set)[m
+[32m+[m
+[32m+[m[32m    # добавление данных[m
+[32m+[m[32m    def records(self, name, tel, email):[m
+[32m+[m[32m        self.db.insert_data(name, tel, email)[m
+[32m+[m[32m        self.view_records()[m
+[32m+[m
+[32m+[m[32m    # обновление (изменение) данных[m
+[32m+[m[32m    def update_record(self, name, tel, email):[m
+[32m+[m[32m        self.db.c.execute('''UPDATE db SET name=?, tel=?, email=? WHERE ID=?''',[m
+[32m+[m[32m                          (name, tel, email, self.tree.set(self.tree.selection()[0], '#1')))[m
+[32m+[m[32m        self.db.conn.commit()[m
+[32m+[m[32m        self.view_records()[m
+[32m+[m
+[32m+[m[32m    # вывод данных в виджет таблицы[m
+[32m+[m[32m    def view_records(self):[m
+[32m+[m[32m        # выбираем информацию из БД[m
+[32m+[m[32m        self.db.c.execute('''SELECT * FROM db''')[m
+[32m+[m[32m        # удаляем все из виджета таблицы[m
+[32m+[m[32m        [self.tree.delete(i) for i in self.tree.get_children()][m
+[32m+[m[32m        # добавляем в виджет таблицы всю информацию из БД[m
+[32m+[m[32m        [self.tree.insert('', 'end', values=row)[m
+[32m+[m[32m         for row in self.db.c.fetchall()][m
+[32m+[m[41m        [m
+[32m+[m[32m    # удаление записей[m
+[32m+[m[32m    def delete_records(self):[m
+[32m+[m[32m        # цикл по выделенным записям[m
+[32m+[m[32m        for selection_item in self.tree.selection():[m
+[32m+[m[32m            # удаление из БД[m
+[32m+[m[32m            self.db.c.execute('''DELETE FROM db WHERE id=?''',[m
+[32m+[m[32m                              (self.tree.set(selection_item, '#1'),))[m
+[32m+[m[32m        # сохранение изменений в БД[m
+[32m+[m[32m        self.db.conn.commit()[m
+[32m+[m[32m        # обновление виджета таблицы[m
+[32m+[m[32m        self.view_records()[m
+[32m+[m
+[32m+[m[32m    # поиск записи[m
+[32m+[m[32m    def search_records(self, name):[m
+[32m+[m[32m        name = ('%' + name + '%',)[m
+[32m+[m[32m        self.db.c.execute([m
+[32m+[m[32m            '''SELECT * FROM db WHERE name LIKE ?''', name)[m
+[32m+[m[32m        [self.tree.delete(i) for i in self.tree.get_children()][m
+[32m+[m[32m        [self.tree.insert('', 'end', values=row)[m
+[32m+[m[32m         for row in self.db.c.fetchall()][m
+[32m+[m
+[32m+[m[32m    # метод отвечающий за вызов дочернего окна[m
+[32m+[m[32m    def open_dialog(self):[m
+[32m+[m[32m        Child()[m
+[32m+[m
+[32m+[m[32m    # метод отвечающий за вызов окна для изменения данных[m
+[32m+[m[32m    def open_update_dialog(self):[m
+[32m+[m[32m        Update()[m
+[32m+[m
+[32m+[m[32m    # метод отвечающий за вызов окна для поиска[m
+[32m+[m[32m    def open_search_dialog(self):[m
+[32m+[m[32m        Search()[m
+[32m+[m
+[32m+[m[32m# класс дочерних окон[m
+[32m+[m[32m# Toplevel - окно верхнего уровня[m
+[32m+[m[32mclass Child(tk.Toplevel):[m
+[32m+[m[32m    def __init__(self):[m
+[32m+[m[32m        super().__init__(root)[m
+[32m+[m[32m        self.init_child()[m
+[32m+[m[32m        self.view = app[m
+[32m+[m
+[32m+[m[32m    def init_child(self):[m
+[32m+[m[32m        # заголовок окна[m
+[32m+[m[32m        self.title('Добавить')[m
+[32m+[m[32m        # размер окна[m
+[32m+[m[32m        self.geometry('400x220')[m
+[32m+[m[32m        # ограничение изменения размеров окна[m
+[32m+[m[32m        self.resizable(False, False)[m
+[32m+[m
+[32m+[m[32m        # перехватываем все события происходящие в приложении[m
+[32m+[m[32m        self.grab_set()[m
+[32m+[m[32m        # захватываем фокус[m
+[32m+[m[32m        self.focus_set()[m
+[32m+[m
+[32m+[m[32m        # подписи[m
+[32m+[m[32m        label_name = tk.Label(self, text='ФИО:')[m
+[32m+[m[32m        label_name.place(x=50, y=50)[m
+[32m+[m[32m        label_select = tk.Label(self, text='Телефон')[m
+[32m+[m[32m        label_select.place(x=50, y=80)[m
+[32m+[m[32m        label_sum = tk.Label(self, text='E-mail')[m
+[32m+[m[32m        label_sum.place(x=50, y=110)[m
+[32m+[m
+[32m+[m[32m        # добавляем строку ввода для наименования[m
+[32m+[m[32m        self.entry_name = ttk.Entry(self)[m
+[32m+[m[32m        # меняем координаты объекта[m
+[32m+[m[32m        self.entry_name.place(x=200, y=50)[m
+[32m+[m
+[32m+[m[32m        # добавляем строку ввода для email[m
+[32m+[m[32m        self.entry_email = ttk.Entry(self)[m
+[32m+[m[32m        self.entry_email.place(x=200, y=80)[m
+[32m+[m
+[32m+[m[32m        # добавляем строку ввода для телефона[m
+[32m+[m[32m        self.entry_tel = ttk.Entry(self)[m
+[32m+[m[32m        self.entry_tel.place(x=200, y=110)[m
+[32m+[m
+[32m+[m[32m        # кнопка закрытия дочернего окна[m
+[32m+[m[32m        self.btn_cancel = ttk.Button([m
+[32m+[m[32m            self, text='Закрыть', command=self.destroy)[m
+[32m+[m[32m        self.btn_cancel.place(x=300, y=170)[m
+[32m+[m
+[32m+[m[32m        # кнопка добавления[m
+[32m+[m[32m        self.btn_ok = ttk.Button(self, text='Добавить')[m
+[32m+[m[32m        self.btn_ok.place(x=220, y=170)[m
+[32m+[m[32m        # срабатывание по ЛКМ[m
+[32m+[m[32m        # при нажатии кнопки вызывается метод records, которому передаюся значения из строк ввода[m
+[32m+[m[32m        self.btn_ok.bind('<Button-1>', lambda event: self.view.records(self.entry_name.get(),[m
+[32m+[m[32m                                                                       self.entry_email.get(),[m
+[32m+[m[32m                                                                       self.entry_tel.get()))[m
+[32m+[m[41m    [m
+[32m+[m
+[32m+[m[32m# класс окна для обновления, наследуемый от класса дочернего окна[m
+[32m+[m[32mclass Update(Child):[m
+[32m+[m[32m    def __init__(self):[m
+[32m+[m[32m        super().__init__()[m
+[32m+[m[32m        self.init_edit()[m
+[32m+[m[32m        self.view = app[m
+[32m+[m[32m        self.db = db[m
+[32m+[m[32m        self.default_data()[m
+[32m+[m
+[32m+[m[32m    def init_edit(self):[m
+[32m+[m[32m        self.title('Редактировать позицию')[m
+[32m+[m[32m        btn_edit = ttk.Button(self, text='Редактировать')[m
+[32m+[m[32m        btn_edit.place(x=205, y=170)[m
+[32m+[m[32m        btn_edit.bind('<Button-1>', lambda event: self.view.update_record(self.entry_name.get(),[m
+[32m+[m[32m                                                                          self.entry_email.get(),[m
+[32m+[m[32m                                                                          self.entry_tel.get()))[m
+[32m+[m
+[32m+[m[32m        # закрываем окно редактирования[m
+[32m+[m[32m        # add='+' позваляет на одну кнопку вешать более одного события[m
+[32m+[m[32m        btn_edit.bind('<Button-1>', lambda event: self.destroy(), add='+')[m
+[32m+[m[32m        self.btn_ok.destroy()[m
+[32m+[m
+[32m+[m[32m    def default_data(self):[m
+[32m+[m[32m        self.db.c.execute('''SELECT * FROM db WHERE id=?''',[m
+[32m+[m[32m                          (self.view.tree.set(self.view.tree.selection()[0], '#1'),))[m
+[32m+[m[32m        # получаем доступ к первой записи из выборки[m
+[32m+[m[32m        row = self.db.c.fetchone()[m
+[32m+[m[32m        self.entry_name.insert(0, row[1])[m
+[32m+[m[32m        self.entry_email.insert(0, row[2])[m
+[32m+[m[32m        self.entry_tel.insert(0, row[3])[m
+[32m+[m
+[32m+[m
+[32m+[m[32m# класс поиска записи[m
+[32m+[m[32mclass Search(tk.Toplevel):[m
+[32m+[m[32m    def __init__(self):[m
+[32m+[m[32m        super().__init__()[m
+[32m+[m[32m        self.init_search()[m
+[32m+[m[32m        self.view = app[m
+[32m+[m
+[32m+[m[32m    def init_search(self):[m
+[32m+[m[32m        self.title('Поиск')[m
+[32m+[m[32m        self.geometry('300x100')[m
+[32m+[m[32m        self.resizable(False, False)[m
+[32m+[m
+[32m+[m[32m        label_search = tk.Label(self, text='Поиск')[m
+[32m+[m[32m        label_search.place(x=50, y=20)[m
+[32m+[m
+[32m+[m[32m        self.entry_search = ttk.Entry(self)[m
+[32m+[m[32m        self.entry_search.place(x=105, y=20, width=150)[m
+[32m+[m
+[32m+[m[32m        btn_cancel = ttk.Button(self, text='Закрыть', command=self.destroy)[m
+[32m+[m[32m        btn_cancel.place(x=185, y=50)[m
+[32m+[m
+[32m+[m[32m        btn_search = ttk.Button(self, text='Поиск')[m
+[32m+[m[32m        btn_search.place(x=105, y=50)[m
+[32m+[m[32m        btn_search.bind('<Button-1>',[m[41m [m
+[32m+[m[32m                        lambda event: self.view.search_records(self.entry_search.get()))[m
+[32m+[m[32m        btn_search.bind('<Button-1>',[m[41m [m
+[32m+[m[32m                        lambda event: self.destroy(), add='+')[m
+[32m+[m
+[32m+[m
+[32m+[m[32m# класс БД[m
+[32m+[m[32mclass DB:[m
+[32m+[m[32m    def __init__(self):[m
+[32m+[m[32m        # создаем соединение с БД[m
+[32m+[m[32m        self.conn = sqlite3.connect('db.db')[m
+[32m+[m[32m        # создание объекта класса cursor, используемый для взаимодействия с БД[m
+[32m+[m[32m        self.c = self.conn.cursor()[m
+[32m+[m[32m        # выполнение запроса к БД[m
+[32m+[m[32m        self.c.execute([m
+[32m+[m[32m            '''CREATE TABLE IF NOT EXISTS db (id integer primary key, name text, tel text, email text)''')[m
+[32m+[m[32m        # сохранение изменений БД[m
+[32m+[m[32m        self.conn.commit()[m
+[32m+[m
+[32m+[m[32m    # метод добавления в БД[m
+[32m+[m[32m    def insert_data(self, name, tel, email):[m
+[32m+[m[32m        self.c.execute('''INSERT INTO db (name, tel, email) VALUES (?, ?, ?)''',[m
+[32m+[m[32m                       (name, tel, email))[m
+[32m+[m[32m        self.conn.commit()[m
+[32m+[m
+[32m+[m
+[32m+[m
+[32m+[m
+[32m+[m[32mif __name__ == '__main__':[m
+[32m+[m[32m    root = tk.Tk()[m
+[32m+[m[32m    # экземпляр класса DB[m
+[32m+[m[32m    db = DB()[m
+[32m+[m[32m    app = Main(root)[m
+[32m+[m[32m    app.pack()[m
+[32m+[m[32m    # заголовок окна[m
+[32m+[m[32m    root.title('Телефонная книга')[m
+[32m+[m[32m    # размер окна[m
+[32m+[m[32m    root.geometry('665x450')[m
+[32m+[m[32m    # ограничение изменения размеров окна[m
+[32m+[m[32m    root.resizable(False, False)[m
+[32m+[m[32m    root.mainloop()[m
+\ No newline at end of file[m
